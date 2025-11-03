@@ -1,0 +1,56 @@
+@page "/planets"
+@using ConsumerDbPlanet.Models
+@inject ConsumerDbPlanet.Services.PlanetService PlanetService
+
+<h3>🌍 Consulta de Planetas - Dragon Ball API</h3>
+
+<div class="card p-3" style="max-width:500px;">
+    <label style="font-weight:bold;">Digite o ID do planeta:</label>
+    <input class="form-control" @bind="planetIdInput" placeholder="Ex: 1, 2, 3..." />
+    <button class="btn btn-primary mt-2" @onclick="BuscarPlaneta">Consultar</button>
+</div>
+
+@if (loading)
+{
+    <p class="mt-3">Carregando...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+else if (planet is not null)
+{
+    <div class="card mt-4 p-3" style="max-width:600px;">
+        <h4>@planet.Name</h4>
+        <img src="@planet.Image" alt="@planet.Name" style="max-width:300px; border-radius:8px;" />
+        <p><strong>Descrição:</strong> @planet.Description</p>
+    </div>
+}
+
+@code {
+    private string planetIdInput = "1";
+    private Planet? planet;
+    private bool loading = false;
+    private string? errorMessage;
+
+    private async Task BuscarPlaneta()
+    {
+        errorMessage = null;
+        planet = null;
+
+        if (!int.TryParse(planetIdInput, out int id))
+        {
+            errorMessage = "Digite um número válido!";
+            return;
+        }
+
+        loading = true;
+        planet = await PlanetService.GetPlanetByIdAsync(id);
+        loading = false;
+
+        if (planet == null)
+        {
+            errorMessage = $"Nenhum planeta encontrado com ID {id}.";
+        }
+    }
+}
